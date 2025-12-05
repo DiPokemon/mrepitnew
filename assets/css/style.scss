@@ -1,0 +1,61 @@
+/*
+	* Theme name: Hello Child
+	* Template: hello-elementor
+*/
+@font-face {
+    font-family: "Vasek";
+    src: url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.eot");
+    src: url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.eot?#iefix")format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.woff2")format("woff2"),
+    url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.woff")format("woff"),
+    url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.ttf")format("truetype"),
+    url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.svg#Vasek")format("svg");
+}
+
+span{
+    &.vasek{
+        font-family: "Vasek", Sans-serif;
+        font-weight: 400;
+        font-size: 95px;
+        line-height: 45px;
+        vertical-align: top;
+    }
+    &.rounded{
+        position: relative;
+        z-index: 0;
+        
+        &::before {
+            content: "";
+            position: absolute;
+            inset: -0.1em -0.1em;
+            background: url("/wp-content/uploads/2025/11/ellipse.svg") no-repeat center / contain;
+            pointer-events: none;
+            z-index: 1; 
+            mix-blend-mode: multiply;
+        }
+    }
+
+    &.waved{
+        position: relative;
+        z-index: 0;
+
+        &::before {
+            content: "";
+            position: absolute;
+            inset: -0.1em -0.1em;
+            background: url("/wp-content/uploads/2025/11/wave.svg") no-repeat center / contain;
+            pointer-events: none;
+            z-index: 1; 
+            mix-blend-mode: multiply;
+        }
+    }
+}
+
+
+
+
+
+.rounded, .waved {
+  position: relative;
+  z-index: 0;
+}
