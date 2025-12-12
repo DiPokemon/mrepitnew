@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/crb_fields/init.php';
+require_once __DIR__ . '/includes/telegram_form.php';
 add_action( 'wp_enqueue_scripts', 'my_child_theme_enqueue_styles', 20 );
 function my_child_theme_enqueue_styles() {    
     wp_enqueue_style( 'parent-style', get_template_directory_uri() . '/style.css'  );
