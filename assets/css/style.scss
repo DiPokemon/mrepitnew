@@ -51,11 +51,30 @@ span{
     }
 }
 
-
-
-
-
 .rounded, .waved {
   position: relative;
   z-index: 0;
+}
+
+.contact_form {
+    input{
+        padding: 16px;
+        color: var(--e-global-color-e9a562b)!important;
+        &::placeholder{
+            color: var(--e-global-color-e9a562b)!important;
+        }
+    }
+    button{
+	    background-image: linear-gradient(90deg, var(--e-global-color-3477539) 0%, #9F67D3 100%);
+        transition: 1s;
+
+        &:hover{
+            background-image: linear-gradient(270deg, var(--e-global-color-3477539) 0%, #9F67D3 100%);
+        }
+    }
+
+    .elementor-message{
+        display: flex;
+        align-items: center;
+    }
 }

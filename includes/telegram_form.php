@@ -12,35 +12,90 @@ add_action('rest_api_init', function () {
  */
 function its_get_form_field(array $data, string $id): string {
 
-    // То, что у тебя в HTML формы:
-    // name="form_fields[name]" и name="form_fields[phone]"
-    $flat_key = "form_fields[$id]";
-    if (isset($data[$flat_key]) && !is_array($data[$flat_key])) {
-        return (string) $data[$flat_key];
+    // 0) Плоские ключи вида form_fields[name][value]
+    $flat_variants = [
+        "form_fields[$id]",
+        "form_fields[$id][value]",
+        "form_fields[$id][raw_value]",
+        "fields[$id][value]",
+        "fields[$id][raw_value]",
+    ];
+
+    foreach ($flat_variants as $k) {
+        if (isset($data[$k]) && !is_array($data[$k])) {
+            return (string) $data[$k];
+        }
     }
 
-    // Если WP распарсил в массив form_fields => [ name => ..., phone => ... ]
+    // 1) Нормальный массив form_fields => [ name => ..., phone => ... ]
     if (isset($data['form_fields'][$id]) && !is_array($data['form_fields'][$id])) {
         return (string) $data['form_fields'][$id];
     }
 
-    // Иногда прилетает вложенно как value
+    // 2) form_fields[name][value] / raw_value
     if (isset($data['form_fields'][$id]['value'])) {
         return (string) $data['form_fields'][$id]['value'];
     }
+    if (isset($data['form_fields'][$id]['raw_value'])) {
+        return (string) $data['form_fields'][$id]['raw_value'];
+    }
 
-    // На всякий случай: JSON-режимы
+    // 3) fields[name][value] (как в JSON от Elementor)
     if (isset($data['fields'][$id]['value'])) {
         return (string) $data['fields'][$id]['value'];
     }
+    if (isset($data['fields'][$id]['raw_value'])) {
+        return (string) $data['fields'][$id]['raw_value'];
+    }
+
+    // 4) fields может быть списком: fields: [ {id: 'name', value: '...'}, ... ]
+    if (isset($data['fields']) && is_array($data['fields']) && array_is_list($data['fields'])) {
+        foreach ($data['fields'] as $f) {
+            if (!is_array($f)) continue;
+            $fid = (string)($f['id'] ?? $f['name'] ?? '');
+            if ($fid === $id) {
+                if (isset($f['value'])) return (string)$f['value'];
+                if (isset($f['raw_value'])) return (string)$f['raw_value'];
+            }
+        }
+    }
+
+    // 5) Иногда прилетает record.fields
     if (isset($data['record']['fields'][$id]['value'])) {
         return (string) $data['record']['fields'][$id]['value'];
+    }
+    if (isset($data['record']['fields'][$id]['raw_value'])) {
+        return (string) $data['record']['fields'][$id]['raw_value'];
     }
 
     return '';
 }
 
+
+/**
+ * Нормально достаём payload независимо от Content-Type
+ */
+function its_get_request_payload(WP_REST_Request $request): array {
+    // 1) JSON body
+    $json = $request->get_json_params();
+    if (is_array($json) && !empty($json)) {
+        return $json;
+    }
+
+    // 2) x-www-form-urlencoded / multipart/form-data (body params)
+    $body = $request->get_body_params();
+    if (is_array($body) && !empty($body)) {
+        return $body;
+    }
+
+    // 3) fallback: всё, что WP смог собрать
+    $params = $request->get_params();
+    return is_array($params) ? $params : [];
+}
+
 function its_elementor_to_telegram(WP_REST_Request $request) {
+
+    $debug = (string) $request->get_param('debug') === '1';
 
     // 1) Защита секретом в URL: ?secret=...
     $expected_secret = function_exists('carbon_get_theme_option')
@@ -48,38 +103,54 @@ function its_elementor_to_telegram(WP_REST_Request $request) {
         : '';
 
     $secret = (string) $request->get_param('secret');
+
     if ($expected_secret && !hash_equals($expected_secret, $secret)) {
         return new WP_REST_Response(['ok' => false, 'error' => 'forbidden'], 403);
     }
 
-    // 2) Payload (Elementor обычно шлёт form-data; WP_REST_Request это раскладывает в params)
-    $data = $request->get_params();
-    if (!is_array($data)) {
-        $data = [];
+    // 2) Payload
+    $data = its_get_request_payload($request);
+    error_log('ITS TG WEBHOOK PAYLOAD: ' . wp_json_encode($data, JSON_UNESCAPED_UNICODE));
+
+
+    // (Опционально) Honeypot антиспам:
+    // Добавь в Elementor скрытое поле, например id="website"
+    // и если оно заполнено — выходим.
+    $honeypot = trim(its_get_form_field($data, 'website'));
+    if ($honeypot !== '') {
+        // Возвращаем 200, чтобы боты не “учились” на ошибках
+        return new WP_REST_Response(['ok' => true, 'skipped' => 'honeypot'], 200);
     }
 
-    // 3) Достаём поля
+    // 3) Поля
     $name  = trim(its_get_form_field($data, 'name'));
     $phone = trim(its_get_form_field($data, 'phone'));
+
+    // Мягкие ограничения, чтобы не ломать Telegram
+    $name  = mb_substr($name, 0, 120);
+    $phone = mb_substr($phone, 0, 60);
 
     // 4) Ссылки
     $phone_digits = preg_replace('/\D+/', '', $phone);
 
-    $wa_url = $phone_digits ? "https://wa.me/{$phone_digits}" : '';
-    // Telegram: лучше всего deep-link в приложение
-    $tg_url = $phone_digits ? "tg://resolve?phone={$phone_digits}" : '';
+    $wa_url  = $phone_digits ? "https://wa.me/{$phone_digits}" : '';
+    $tel_url = $phone_digits ? "tel:+{$phone_digits}" : '';
+
+    // tg:// ссылки работают не везде (в Telegram сообщении они кликабельны, но могут открываться по-разному)
+    $tg_deeplink = $phone_digits ? "tg://resolve?phone={$phone_digits}" : '';
 
     // 5) Сообщение (HTML)
     $message  = "📩 Новая заявка:\n";
-    $message .= "<b>Имя: </b> " . esc_html($name) . "\n";
-    $message .= "<b>Телефон: </b> " . esc_html($phone) . "\n";
+    $message .= "<b>Имя:</b> " . esc_html($name ?: '—') . "\n";
+    $message .= "<b>Телефон:</b> " . esc_html($phone ?: '—') . "\n";
 
     $links = [];
-    if ($wa_url) $links[] = '<a href="' . esc_url($wa_url) . '">WhatsApp</a>';
-    if ($tg_url) $links[] = '<a href="' . esc_url($tg_url) . '">Telegram</a>';
+    if ($wa_url)     $links[] = '<a href="' . esc_url($wa_url) . '">WhatsApp</a>';
+    if ($tel_url)    $links[] = '<a href="' . esc_url($tel_url) . '">Позвонить</a>';
+    if ($tg_deeplink) $links[] = '<a href="' . esc_url($tg_deeplink) . '">Telegram</a>';
 
-    if (!empty($links)) {
-        $message .= implode(' | ', $links);
+    if ($links) {
+        $message .= "\n" . implode(' | ', $links);
     }
 
     // 6) Настройки Telegram из Carbon Fields
@@ -87,7 +158,7 @@ function its_elementor_to_telegram(WP_REST_Request $request) {
         return new WP_REST_Response(['ok' => false, 'error' => 'Carbon Fields not available'], 500);
     }
 
-    $token  = trim((string) carbon_get_theme_option('tg_bot_token'));
+    $token   = trim((string) carbon_get_theme_option('tg_bot_token'));
     $chat_id = trim((string) carbon_get_theme_option('tg_chat_id'));
 
     if (!$token || !$chat_id) {
@@ -97,32 +168,55 @@ function its_elementor_to_telegram(WP_REST_Request $request) {
     // 7) Отправка в Telegram
     $tg_url_api = "https://api.telegram.org/bot{$token}/sendMessage";
 
+    $payload = [
+        'chat_id'                  => $chat_id,
+        'text'                     => $message,
+        'parse_mode'               => 'HTML',
+        'disable_web_page_preview' => true,
+    ];
+
     $resp = wp_remote_post($tg_url_api, [
         'timeout' => 15,
         'headers' => ['Content-Type' => 'application/json; charset=utf-8'],
-        'body'    => wp_json_encode([
-            'chat_id' => $chat_id,
-            'text'    => $message,
-            'parse_mode' => 'HTML',
-            'disable_web_page_preview' => true,
-        ], JSON_UNESCAPED_UNICODE),
+        'body'    => wp_json_encode($payload, JSON_UNESCAPED_UNICODE),
     ]);
 
     if (is_wp_error($resp)) {
-        return new WP_REST_Response(['ok' => false, 'error' => $resp->get_error_message()], 500);
+        $out = ['ok' => false, 'error' => $resp->get_error_message()];
+        if ($debug) $out['debug'] = ['data' => $data, 'message' => $message, 'payload' => $payload];
+        return new WP_REST_Response($out, 500);
     }
 
-    $code = wp_remote_retrieve_response_code($resp);
-    $body = wp_remote_retrieve_body($resp);
+    $code    = wp_remote_retrieve_response_code($resp);
+    $body    = wp_remote_retrieve_body($resp);
     $decoded = json_decode($body, true);
 
-    if ($code < 200 || $code >= 300 || (is_array($decoded) && isset($decoded['ok']) && !$decoded['ok'])) {
+    $tg_ok = ($code >= 200 && $code < 300 && is_array($decoded) && !empty($decoded['ok']));
+
+    if (!$tg_ok) {
         $tg_desc = is_array($decoded) ? ($decoded['description'] ?? $body) : $body;
-        return new WP_REST_Response([
+
+        $out = [
             'ok' => false,
             'telegram_http_code' => $code,
             'telegram_description' => $tg_desc,
-        ], 500);
+        ];
+        if ($debug) $out['debug'] = ['data' => $data, 'message' => $message, 'payload' => $payload, 'telegram_raw' => $body];
+        return new WP_REST_Response($out, 500);
+    }
+
+    // 8) Debug-ответ (если надо посмотреть что прилетело)
+    if ($debug) {
+        return new WP_REST_Response([
+            'ok' => true,
+            'debug' => [
+                'data' => $data,
+                'parsed' => ['name' => $name, 'phone' => $phone],
+                'message' => $message,
+                'telegram_http_code' => $code,
+                'telegram_raw' => $body,
+            ]
+        ], 200);
     }
 
     return new WP_REST_Response(['ok' => true], 200);
