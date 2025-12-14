@@ -82,4 +82,26 @@ span.waved::before {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+}
+
+.single-service .elementor-widget-theme-post-content h3 {
+  font-size: 20px;
+  margin: 0;
+  margin-bottom: 16px;
+}
+.single-service .elementor-widget-theme-post-content p {
+  margin-bottom: 32px;
+}
+.single-service .elementor-widget-theme-post-content ul {
+  margin-bottom: 32px;
+  padding-left: 20px;
+}
+.single-service .elementor-widget-theme-post-content ul li {
+  line-height: 130%;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.single-service .elementor-widget-theme-post-content ul li::marker {
+  color: var(--e-global-color-3477539);
+  font-size: 1.2em;
 }/*# sourceMappingURL=style.css.map */

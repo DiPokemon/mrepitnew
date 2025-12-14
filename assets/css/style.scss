@@ -78,3 +78,33 @@ span{
         align-items: center;
     }
 }
+
+.single-service {
+    .elementor-widget-theme-post-content {
+        h3{
+            font-size: 20px;
+            margin: 0;
+            margin-bottom: 16px
+        } 
+  
+        p{
+            margin-bottom: 32px;
+        }
+        
+        ul{
+            margin-bottom: 32px;
+            padding-left:20px;
+
+            li{
+                line-height: 130%;
+                font-size: 16px;
+                margin-bottom: 10px;
+
+                &::marker{
+                    color: var(--e-global-color-3477539); 
+                    font-size: 1.2em;
+                }
+            }
+        }
+    }
+}
