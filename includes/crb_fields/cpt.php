@@ -52,4 +52,29 @@ add_action('init', function () {
         'supports'           => ['title', 'editor', 'thumbnail', 'excerpt'],
         'rewrite'            => ['slug' => 'reviews'],
     ]);
+
+    // ===== УЧИТЕЛЯ =====
+    register_post_type('teacher', [
+        'labels' => [
+            'name'               => 'Преподаватели',
+            'singular_name'      => 'Преподаватель',
+            'add_new'            => 'Добавить',
+            'add_new_item'       => 'Добавить преподавателя',
+            'edit_item'          => 'Редактировать преподавателя',
+            'new_item'           => 'Новый преподаватель',
+            'view_item'          => 'Просмотр преподавателя',
+            'search_items'       => 'Найти преподавателя',
+            'not_found'          => 'Преподаватели не найдены',
+            'not_found_in_trash' => 'В корзине преподавателей нет',
+            'menu_name'          => 'Преподаватели',
+        ],
+        'public'             => true,
+        'has_archive'        => false,
+        'show_in_menu'       => true,   // отдельным пунктом слева
+        'show_in_rest'       => true,
+        'menu_position'      => 22,
+        'menu_icon'          => 'dashicons-welcome-learn-more',
+        'supports'           => ['title', 'editor', 'thumbnail', 'excerpt'],
+        'rewrite'            => ['slug' => 'teachers'],
+    ]);
 });
