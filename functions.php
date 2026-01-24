@@ -33,3 +33,15 @@ add_action('wp_enqueue_scripts', function () {
 }, 20);
 
 
+add_action('elementor/dynamic_tags/register', function($dynamic_tags) {
+    // Регистрируем группу (опционально, чтобы было красиво отдельным разделом)
+    $dynamic_tags->register_group('carbon_fields', [
+        'title' => 'Carbon Fields',
+    ]);
+    // Регистрируем теги
+    require_once __DIR__ . '/includes/elementor-carbon-tags.php';
+
+    $dynamic_tags->register_tag('Elementor_CF_Crown_Display_Tag');
+    $dynamic_tags->register_tag('Elementor_CF_Promo_Display_Tag');
+
+});
