@@ -20,6 +20,13 @@ add_action('carbon_fields_register_fields', function () {
         ->where('post_type', '=', 'service')
         ->add_fields([
             Field::make( 'rich_text', 'service_anounce', 'Текст анонса' )
-                ->set_help_text('Будет отображаться на главной странице в блоке услуг'),
+                ->set_help_text('Будет отображаться на главной странице в блоке услуг')
         ]);
+
+    Container::make('post_meta', 'Промо настройки')
+        ->where('post_type', '=', 'service')
+        ->add_fields({
+            Field::make( 'checkbox', 'crown_display', 'Показать корону' ),
+            Field::make( 'checkbox', 'promo_display', 'Показать "Выгодно!"' )
+        });
 });
