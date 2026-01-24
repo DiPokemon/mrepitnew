@@ -115,9 +115,13 @@ span{
         list-style-position: outside;
         padding-left: 24px;
 
-        &::marker{
-            color: var(--e-global-color-3477539); 
-            font-size: 1.2em;
+        li{
+            &::marker{
+                color: var(--e-global-color-3477539); 
+                font-size: 1.2em;
+            }
         }
+
+        
     }
 }

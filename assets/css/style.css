@@ -111,7 +111,7 @@ span.waved::before {
   list-style-position: outside;
   padding-left: 24px;
 }
-.service_loop_item ul::marker {
+.service_loop_item ul li::marker {
   color: var(--e-global-color-3477539);
   font-size: 1.2em;
 }/*# sourceMappingURL=style.css.map */
