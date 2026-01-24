@@ -104,4 +104,14 @@ span.waved::before {
 .single-service .elementor-widget-theme-post-content ul li::marker {
   color: var(--e-global-color-3477539);
   font-size: 1.2em;
+}
+
+.service_loop_item ul {
+  padding: 0;
+  list-style-position: outside;
+  padding-left: 24px;
+}
+.service_loop_item ul::marker {
+  color: var(--e-global-color-3477539);
+  font-size: 1.2em;
 }/*# sourceMappingURL=style.css.map */
