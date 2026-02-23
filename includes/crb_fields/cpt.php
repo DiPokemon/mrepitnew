@@ -20,12 +20,14 @@ add_action('init', function () {
         ],
         'public'             => true,
         'has_archive'        => false,
-        'show_in_menu'       => true,   // отдельным пунктом слева
+        'show_in_menu'       => false,  // доступ через меню "Школа"
         'show_in_rest'       => true,   // полезно для редакторов/Elementor
         'menu_position'      => 20,
         'menu_icon'          => 'dashicons-hammer',
         'supports'           => ['title', 'editor', 'thumbnail', 'excerpt'],
         'rewrite'            => ['slug' => 'services'],
+        'capability_type'    => ['service', 'services'],
+        'map_meta_cap'       => true,
     ]);
 
     // ===== ОТЗЫВЫ =====
@@ -45,12 +47,14 @@ add_action('init', function () {
         ],
         'public'             => true,
         'has_archive'        => false,
-        'show_in_menu'       => true,   // отдельным пунктом слева
+        'show_in_menu'       => false,  // доступ через меню "Школа"
         'show_in_rest'       => true,
         'menu_position'      => 21,
         'menu_icon'          => 'dashicons-testimonial',
         'supports'           => ['title', 'editor', 'thumbnail', 'excerpt'],
         'rewrite'            => ['slug' => 'reviews'],
+        'capability_type'    => ['review', 'reviews'],
+        'map_meta_cap'       => true,
     ]);
 
     // ===== УЧИТЕЛЯ =====
@@ -70,11 +74,15 @@ add_action('init', function () {
         ],
         'public'             => true,
         'has_archive'        => false,
-        'show_in_menu'       => true,   // отдельным пунктом слева
+        'show_in_menu'       => false,  // доступ через меню "Школа" или через связь с пользователем
         'show_in_rest'       => true,
         'menu_position'      => 22,
         'menu_icon'          => 'dashicons-welcome-learn-more',
         'supports'           => ['title', 'editor', 'thumbnail', 'excerpt'],
         'rewrite'            => ['slug' => 'teachers'],
+        'capability_type'    => ['teacher_profile', 'teacher_profiles'],
+        'map_meta_cap'       => true,
     ]);
+
+    
 });
