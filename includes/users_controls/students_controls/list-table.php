@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) exit;
 
 if (!class_exists('WP_List_Table')) {
@@ -22,7 +22,7 @@ class School_Students_List_Table extends WP_List_Table {
             'phone'     => 'Телефон',
             'timezone'  => 'Часовой пояс',
             'tg'        => 'Telegram',
-            'parents'  => 'Родители',
+            'parents'   => 'Родители',
         ];
     }
 
@@ -46,7 +46,9 @@ class School_Students_List_Table extends WP_List_Table {
     }
 
     protected function column_timezone($item) {
-        return esc_html(get_user_meta($item->ID, 'student_timezone', true) ?: '—');
+        $tz = school_normalize_msk_offset(get_user_meta($item->ID, 'student_timezone', true));
+        $map = school_msk_offsets_options();
+        return esc_html($map[$tz] ?? 'MSK+0');
     }
 
     protected function column_tg($item) {
@@ -69,13 +71,17 @@ class School_Students_List_Table extends WP_List_Table {
         $paged    = max(1, (int)($_GET['paged'] ?? 1));
         $search   = isset($_GET['s']) ? sanitize_text_field(wp_unslash($_GET['s'])) : '';
 
+        $columns  = $this->get_columns();
+        $hidden   = [];
+        $sortable = method_exists($this, 'get_sortable_columns') ? $this->get_sortable_columns() : [];
+        $this->_column_headers = [$columns, $hidden, $sortable];
+
         $args = [
-            'blog_id' => get_current_blog_id(),
-            'number' => $per_page,
-            'offset' => ($paged - 1) * $per_page,
-            'role' => 'student',
-            'orderby'=> 'registered',
-            'order'  => 'DESC',
+            'number'   => $per_page,
+            'offset'   => ($paged - 1) * $per_page,
+            'role__in' => ['student'],
+            'orderby'  => 'registered',
+            'order'    => 'DESC',
         ];
 
         if ($search) {
@@ -84,6 +90,12 @@ class School_Students_List_Table extends WP_List_Table {
         }
 
         $q = new WP_User_Query($args);
+        if ((int)$q->get_total() === 0) {
+            $fallback_args = $args;
+            $fallback_args['blog_id'] = 0;
+            $q = new WP_User_Query($fallback_args);
+        }
+
         $this->items = $q->get_results();
 
         $this->set_pagination_args([

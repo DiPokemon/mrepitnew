@@ -4,8 +4,8 @@
 */
 @font-face {
   font-family: "Vasek";
-  src: url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.eot");
-  src: url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.eot?#iefix") format("embedded-opentype"), url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.woff2") format("woff2"), url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.woff") format("woff"), url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.ttf") format("truetype"), url("https://db.onlinewebfonts.com/t/81545d957282b467cd748029b4e4d18e.svg#Vasek") format("svg");
+  src: url("../fonts/vasek/vasek.eot");
+  src: url("../fonts/vasek/vasek.eot?#iefix") format("embedded-opentype"), url("../fonts/vasek/vasek.woff2") format("woff2"), url("../fonts/vasek/vasek.woff") format("woff"), url("../fonts/vasek/vasek.ttf") format("truetype"), url("../fonts/vasek/vasek.svg#Vasek") format("svg");
 }
 span.vasek {
   font-family: "Vasek", Sans-serif;
