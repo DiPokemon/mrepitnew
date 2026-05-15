@@ -31,7 +31,6 @@ pnpm-debug.log*
 ~$*
 
 # Dependency directories
-vendor/
 node_modules/
 
 # Build and tool caches
