@@ -86,6 +86,8 @@ Each role has:
 - Manager can manage only school roles (`teacher/student/parent`) and family links.
 - Manager cannot edit admins/managers (enforced via `map_meta_cap`).
 - Relationship meta keys (`parent_children`, `student_parents`) are protected by `pre_update_user_meta` filter.
+- Parent/student relationship IDs are filtered by expected role before saving.
+- Parent/student sync adds missing reverse links and removes stale reverse links after unlinking.
 
 ## 9. Teacher Linking Model
 Two-way binding between WP User (`teacher`) and CPT post (`teacher`):
@@ -97,7 +99,10 @@ Implemented in `includes/users_controls/common/teacher-link.php` with safe relin
 ## 10. Telegram Integration
 File: `includes/telegram_form.php`.
 - Route: `POST /wp-json/its/v1/elementor-telegram`
-- Secret verification via query param `?secret=` and Carbon option `tg_webhook_secret`.
+- Required secret verification via query param `?secret=` and Carbon option `tg_webhook_secret`.
+- Requests are rejected if `tg_webhook_secret` is not configured.
+- Basic transient-based rate limit is applied per client IP hash.
+- Debug logging and debug responses expose only payload shape, not raw personal data.
 - Flexible payload parsing for Elementor forms.
 - Optional honeypot field `website`.
 - Sends message through Telegram Bot API `sendMessage`.
@@ -109,21 +114,41 @@ File: `assets/js/phone-mask.js`.
 - Supports dynamic Elementor form rendering via frontend hook.
 
 ## 12. Known Risks / Technical Debt
-- Some files contain mojibake in comments/UI strings (encoding issue).
-- Telegram route uses open permission callback and relies on secret only.
-- Payload logging may include personal data (`error_log`).
 - There are empty placeholder files (`form.php`, `menu.php`, `list-table-base.php`) in some modules.
+- School business logic still lives in the theme; the target architecture is to move it into a dedicated plugin.
+- Current static checks cover critical invariants, but there is no full WordPress integration test suite yet.
 
-## 13. Local Development Notes
+## 13. Stabilization Checks
+Static checks are stored in `tests/static/`:
+- `no-mojibake.test.ps1`: detects known mojibake markers outside `vendor` and font assets.
+- `telegram-webhook-security.test.ps1`: checks webhook logging, secret handling, debug output, and rate limiting.
+- `school-users-security.test.ps1`: checks manager capability restrictions and role CRUD handler safeguards.
+- `school-sync-security.test.ps1`: checks parent/student bidirectional sync cleanup invariants.
+
+Recommended local verification:
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\static\no-mojibake.test.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\static\telegram-webhook-security.test.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\static\school-users-security.test.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\static\school-sync-security.test.ps1
+```
+
+Run PHP syntax checks for theme PHP files excluding `vendor`:
+```powershell
+$files = rg --files -g "*.php" -g "!vendor/**"; foreach ($file in $files) { php -l $file }
+```
+
+## 14. Local Development Notes
 1. Ensure parent theme `hello-elementor` is installed and active.
 2. Run `composer install` in theme root if vendor is missing.
 3. Configure Telegram settings in Theme Options before testing form webhook.
 4. After switching theme, verify custom roles/caps are present.
 
-## 14. Quick Change Map
+## 15. Quick Change Map
 - Add/modify CPT: `includes/crb_fields/cpt.php`
 - Add/modify post meta fields: `includes/crb_fields/*_fields.php` + include in `includes/crb_fields/init.php`
 - User role logic: `includes/users_controls/common/capabilities.php`
 - School admin UI: `includes/users_controls/common/admin-menu.php`
 - User CRUD logic: `includes/users_controls/*_controls/handlers.php`
 - Telegram webhook: `includes/telegram_form.php`
+- Parent/student sync: `includes/users_controls/common/sync.php`

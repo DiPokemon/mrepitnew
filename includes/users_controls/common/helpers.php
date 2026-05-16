@@ -15,9 +15,9 @@ function school_admin_can_link_family(): bool {
 
 function school_allowed_roles_map(): array {
     return [
-        'parent'  => 'Р РѕРґРёС‚РµР»Рё',
-        'student' => 'РЈС‡РµРЅРёРєРё',
-        'teacher' => 'РЈС‡РёС‚РµР»СЏ',
+        'parent'  => 'Родители',
+        'student' => 'Ученики',
+        'teacher' => 'Учителя',
     ];
 }
 
@@ -28,6 +28,23 @@ function school_role_label(string $role): string {
 
 function school_user_has_role(WP_User $u, string $role): bool {
     return in_array($role, (array)$u->roles, true);
+}
+
+function school_filter_user_ids_by_role(array $user_ids, string $role): array {
+    $filtered = [];
+
+    foreach (array_unique(array_map('absint', $user_ids)) as $user_id) {
+        if (!$user_id) {
+            continue;
+        }
+
+        $user = get_user_by('id', $user_id);
+        if ($user && school_user_has_role($user, $role)) {
+            $filtered[] = $user_id;
+        }
+    }
+
+    return $filtered;
 }
 
 function school_assign_role_on_current_blog(int $user_id, string $role): void {

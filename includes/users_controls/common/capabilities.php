@@ -2,11 +2,11 @@
 if (!defined('ABSPATH')) exit;
 
 add_action('after_switch_theme', function () {
-    add_role('teacher', 'РџСЂРµРїРѕРґР°РІР°С‚РµР»СЊ', ['read' => true]);
-    add_role('student', 'РЈС‡РµРЅРёРє', ['read' => true]);
-    add_role('parent',  'Р РѕРґРёС‚РµР»СЊ', ['read' => true]);
+    add_role('teacher', 'Преподаватель', ['read' => true]);
+    add_role('student', 'Ученик', ['read' => true]);
+    add_role('parent',  'Родитель', ['read' => true]);
 
-    add_role('manager', 'РњРµРЅРµРґР¶РµСЂ', [
+    add_role('manager', 'Менеджер', [
         'read'           => true,
         'list_users'     => true,
         'create_users'   => true,
@@ -70,7 +70,7 @@ add_action('init', function () {
     foreach ($roles as $role_name) {
         $role = get_role($role_name);
         if (!$role && $role_name === 'manager') {
-            $role = add_role('manager', 'РњРµРЅРµРґР¶РµСЂ', ['read' => true]);
+            $role = add_role('manager', 'Менеджер', ['read' => true]);
         }
         if (!$role) continue;
 
@@ -82,7 +82,7 @@ add_action('init', function () {
     }
 });
 
-/** РћРіСЂР°РЅРёС‡РёРІР°РµРј СЂРѕР»Рё РІ РІС‹РїР°РґР°СЋС‰РµРј СЃРїРёСЃРєРµ СЂРѕР»РµР№ */
+/** Ограничиваем роли в выпадающем списке ролей */
 add_filter('editable_roles', function ($roles) {
     if (!current_user_can('school_manage_users') || school_is_admin()) {
         return $roles;
@@ -99,7 +99,7 @@ add_filter('editable_roles', function ($roles) {
     return $roles;
 });
 
-/** РњРµРЅРµРґР¶РµСЂ РЅРµ РјРѕР¶РµС‚ СЂРµРґР°РєС‚РёСЂРѕРІР°С‚СЊ Р°РґРјРёРЅРѕРІ/РјРµРЅРµРґР¶РµСЂРѕРІ Рё РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ РІРЅРµ teacher/student/parent */
+/** Менеджер не может редактировать админов/менеджеров и пользователей вне teacher/student/parent */
 add_filter('map_meta_cap', function ($caps, $cap, $user_id, $args) {
 
     if (!in_array($cap, ['edit_user', 'remove_user', 'delete_user', 'promote_user'], true)) {

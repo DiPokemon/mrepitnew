@@ -2,7 +2,7 @@
 if (!defined('ABSPATH')) exit;
 
 add_action('admin_post_school_teacher_create', function () {
-    if (!school_admin_can_manage_users()) wp_die('РќРµС‚ РґРѕСЃС‚СѓРїР°');
+    if (!school_admin_can_manage_users()) wp_die('Нет доступа');
     check_admin_referer('school_teacher_create');
 
     $user_login   = sanitize_user(wp_unslash($_POST['user_login'] ?? ''));
@@ -11,7 +11,7 @@ add_action('admin_post_school_teacher_create', function () {
     $user_pass    = (string)($_POST['user_pass'] ?? '');
 
     if (!$user_login || !$user_email) {
-        wp_redirect(add_query_arg(['page'=>'school-teacher-add','error'=>rawurlencode('Р—Р°РїРѕР»РЅРёС‚Рµ Р»РѕРіРёРЅ Рё email')], admin_url('admin.php')));
+        wp_redirect(add_query_arg(['page'=>'school-teacher-add','error'=>rawurlencode('Заполните логин и email')], admin_url('admin.php')));
         exit;
     }
 
@@ -49,12 +49,12 @@ add_action('admin_post_school_teacher_create', function () {
 });
 
 add_action('admin_post_school_teacher_update', function () {
-    if (!school_admin_can_manage_users()) wp_die('РќРµС‚ РґРѕСЃС‚СѓРїР°');
+    if (!school_admin_can_manage_users()) wp_die('Нет доступа');
     check_admin_referer('school_teacher_update');
 
     $user_id = (int)($_POST['user_id'] ?? 0);
     $u = get_user_by('id', $user_id);
-    if (!$u || !school_user_has_role($u, 'teacher')) wp_die('РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ');
+    if (!$u || !school_user_has_role($u, 'teacher')) wp_die('Пользователь не найден');
 
     $display_name = sanitize_text_field(wp_unslash($_POST['display_name'] ?? ''));
     $user_email   = sanitize_email(wp_unslash($_POST['user_email'] ?? ''));
@@ -93,13 +93,13 @@ add_action('admin_post_school_teacher_update', function () {
 });
 
 add_action('admin_post_school_teacher_create_profile', function () {
-    if (!school_admin_can_manage_users()) wp_die('РќРµС‚ РґРѕСЃС‚СѓРїР°');
+    if (!school_admin_can_manage_users()) wp_die('Нет доступа');
 
     $user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
     check_admin_referer('school_teacher_create_profile_' . $user_id);
 
     $u = get_user_by('id', $user_id);
-    if (!$u || !school_user_has_role($u, 'teacher')) wp_die('РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ');
+    if (!$u || !school_user_has_role($u, 'teacher')) wp_die('Пользователь не найден');
 
     $title = $u->display_name ?: $u->user_login;
     $post_id = wp_insert_post([

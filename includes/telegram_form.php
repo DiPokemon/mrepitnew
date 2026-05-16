@@ -93,6 +93,53 @@ function its_get_request_payload(WP_REST_Request $request): array {
     return is_array($params) ? $params : [];
 }
 
+function its_maybe_log_telegram_webhook_debug(bool $debug, array $data): void {
+    if (!$debug || !defined('WP_DEBUG_LOG') || !WP_DEBUG_LOG) {
+        return;
+    }
+
+    error_log('ITS TG WEBHOOK DEBUG: ' . wp_json_encode(its_get_telegram_webhook_debug_summary($data), JSON_UNESCAPED_UNICODE));
+}
+
+function its_get_telegram_webhook_debug_summary(array $data): array {
+    $summary = [
+        'top_level_keys' => array_slice(array_keys($data), 0, 30),
+        'field_keys'     => [],
+    ];
+
+    if (isset($data['form_fields']) && is_array($data['form_fields'])) {
+        $summary['field_keys'] = array_slice(array_keys($data['form_fields']), 0, 30);
+    } elseif (isset($data['fields']) && is_array($data['fields'])) {
+        $summary['field_keys'] = array_slice(array_keys($data['fields']), 0, 30);
+    }
+
+    return $summary;
+}
+
+function its_get_telegram_webhook_client_key(): string {
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+    return 'its_tg_webhook_' . hash('sha256', $ip);
+}
+
+function its_check_telegram_webhook_rate_limit(): bool {
+    $limit = (int) apply_filters('its_telegram_webhook_rate_limit_count', 10);
+    $window = (int) apply_filters('its_telegram_webhook_rate_limit_window', 5 * MINUTE_IN_SECONDS);
+
+    if ($limit < 1 || $window < 1) {
+        return true;
+    }
+
+    $key = its_get_telegram_webhook_client_key();
+    $count = (int) get_transient($key);
+
+    if ($count >= $limit) {
+        return false;
+    }
+
+    set_transient($key, $count + 1, $window);
+    return true;
+}
+
 function its_elementor_to_telegram(WP_REST_Request $request) {
 
     $debug = (string) $request->get_param('debug') === '1';
@@ -104,13 +151,21 @@ function its_elementor_to_telegram(WP_REST_Request $request) {
 
     $secret = (string) $request->get_param('secret');
 
-    if ($expected_secret && !hash_equals($expected_secret, $secret)) {
+    if ($expected_secret === '') {
+        return new WP_REST_Response(['ok' => false, 'error' => 'webhook_secret_missing'], 500);
+    }
+
+    if (!hash_equals($expected_secret, $secret)) {
         return new WP_REST_Response(['ok' => false, 'error' => 'forbidden'], 403);
+    }
+
+    if (!its_check_telegram_webhook_rate_limit()) {
+        return new WP_REST_Response(['ok' => false, 'error' => 'rate_limited'], 429);
     }
 
     // 2) Payload
     $data = its_get_request_payload($request);
-    error_log('ITS TG WEBHOOK PAYLOAD: ' . wp_json_encode($data, JSON_UNESCAPED_UNICODE));
+    its_maybe_log_telegram_webhook_debug($debug, $data);
 
 
     // (Опционально) Honeypot антиспам:
@@ -183,7 +238,7 @@ function its_elementor_to_telegram(WP_REST_Request $request) {
 
     if (is_wp_error($resp)) {
         $out = ['ok' => false, 'error' => $resp->get_error_message()];
-        if ($debug) $out['debug'] = ['data' => $data, 'message' => $message, 'payload' => $payload];
+        if ($debug) $out['debug'] = its_get_telegram_webhook_debug_summary($data);
         return new WP_REST_Response($out, 500);
     }
 
@@ -201,7 +256,15 @@ function its_elementor_to_telegram(WP_REST_Request $request) {
             'telegram_http_code' => $code,
             'telegram_description' => $tg_desc,
         ];
-        if ($debug) $out['debug'] = ['data' => $data, 'message' => $message, 'payload' => $payload, 'telegram_raw' => $body];
+        if ($debug) {
+            $out['debug'] = array_merge(
+                its_get_telegram_webhook_debug_summary($data),
+                [
+                    'telegram_http_code' => $code,
+                    'telegram_response_ok' => !empty($decoded['ok']),
+                ]
+            );
+        }
         return new WP_REST_Response($out, 500);
     }
 
@@ -209,13 +272,13 @@ function its_elementor_to_telegram(WP_REST_Request $request) {
     if ($debug) {
         return new WP_REST_Response([
             'ok' => true,
-            'debug' => [
-                'data' => $data,
-                'parsed' => ['name' => $name, 'phone' => $phone],
-                'message' => $message,
-                'telegram_http_code' => $code,
-                'telegram_raw' => $body,
-            ]
+            'debug' => array_merge(
+                its_get_telegram_webhook_debug_summary($data),
+                [
+                    'telegram_http_code' => $code,
+                    'telegram_response_ok' => !empty($decoded['ok']),
+                ]
+            ),
         ], 200);
     }
 
