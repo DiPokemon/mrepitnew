@@ -117,15 +117,16 @@
 
 ### Planned
 
-- [ ] Создать директорию плагина `wp-content/plugins/mrepit-school-core`.
-- [ ] Добавить главный файл плагина.
-- [ ] Перенести регистрацию ролей и capabilities из темы в плагин.
-- [ ] Перенести permission helpers.
-- [ ] Перенести admin menu `School` или оставить временный bridge в теме.
-- [ ] Перенести CRUD teacher/student/parent.
-- [ ] Перенести teacher user <-> teacher post link.
-- [ ] Перенести parent/student sync.
-- [ ] Добавить uninstall/deactivation policy без удаления данных по умолчанию.
+- [x] Создать директорию плагина `wp-content/plugins/mrepit-school-core`.
+- [x] Добавить главный файл плагина.
+- [x] Перенести регистрацию ролей и capabilities из темы в плагин.
+- [x] Перенести permission helpers.
+- [x] Перенести admin menu `School` или оставить временный bridge в теме.
+- [x] Перенести CRUD teacher/student/parent.
+- [x] Перенести teacher user <-> teacher post link.
+- [x] Перенести parent/student sync.
+- [x] Добавить uninstall/deactivation policy без удаления данных по умолчанию.
+- [x] Оставить в теме temporary fallback guard для school module при выключенном плагине.
 - [ ] Оставить в теме только подключение визуальных Elementor-интеграций.
 
 ### Acceptance Criteria
@@ -328,3 +329,6 @@
 - 2026-05-16: Добавлен статический тест `tests/static/school-users-security.test.ps1` для manager capabilities и CRUD handlers; relationship IDs в parent/student handlers теперь фильтруются по ожидаемой роли перед сохранением.
 - 2026-05-16: Добавлен статический тест `tests/static/school-sync-security.test.ps1`; синхронизация parent/student теперь удаляет устаревшие обратные связи при отвязке.
 - 2026-05-16: README обновлен по итогам Phase 0: описаны webhook hardening, parent/student sync cleanup, статические проверки и оставшиеся риски.
+- 2026-05-18: Создан standalone plugin `wp-content/plugins/mrepit-school-core` с отдельным Git-репозиторием; перенесен текущий school user-control module; в теме добавлен guard `MREPIT_SCHOOL_CORE_LOADED`; добавлены Phase 1 design и implementation plan.
+- 2026-05-18: В `mrepit-school-core` добавлен `uninstall.php` с policy сохранения данных; plugin structure test проверяет, что uninstall не удаляет school data автоматически.
+- 2026-05-18: Плагин активирован в локальном WordPress; проверено, что `MREPIT_SCHOOL_CORE_LOADED` определен и `school_is_admin()` доступна при обычной загрузке `wp-load.php`. Plugin commits: `c3c6668`, `449d156`, `e9bfa77`.

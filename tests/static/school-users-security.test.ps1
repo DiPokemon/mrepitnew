@@ -12,6 +12,7 @@ $helpers = Read-ProjectFile 'includes\users_controls\common\helpers.php'
 $parentsHandler = Read-ProjectFile 'includes\users_controls\parents_controls\handlers.php'
 $studentsHandler = Read-ProjectFile 'includes\users_controls\students_controls\handlers.php'
 $teachersHandler = Read-ProjectFile 'includes\users_controls\teachers_controls\handlers.php'
+$themeFunctions = Read-ProjectFile 'functions.php'
 
 if ($capabilities -notmatch "add_filter\('editable_roles'") {
     Write-Error 'Manager role restrictions must filter editable_roles.'
@@ -35,6 +36,10 @@ if ($capabilities -notmatch 'do_not_allow') {
 
 if ($helpers -notmatch 'function\s+school_filter_user_ids_by_role') {
     Write-Error 'Relationship handlers must use school_filter_user_ids_by_role() before saving linked user IDs.'
+}
+
+if ($themeFunctions -notmatch "MREPIT_SCHOOL_CORE_LOADED[\s\S]+includes/users_controls/users-controls\.php") {
+    Write-Error 'Theme functions.php must guard users-controls.php loading behind MREPIT_SCHOOL_CORE_LOADED.'
 }
 
 foreach ($entry in @(

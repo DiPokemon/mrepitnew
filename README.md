@@ -8,7 +8,7 @@
 ## 2. Project Structure
 - `functions.php`: theme bootstrap, assets enqueue, SVG mime support, Elementor dynamic tags registration.
 - `includes/crb_fields/`: Carbon Fields boot + CPT and meta definitions.
-- `includes/users_controls/`: custom admin module (roles/capabilities/menu/CRUD/list tables/linking).
+- `includes/users_controls/`: legacy fallback copy of the custom school admin module. The active target is the `mrepit-school-core` plugin.
 - `includes/telegram_form.php`: REST webhook endpoint for Elementor form -> Telegram.
 - `includes/elementor-carbon-tags.php`: custom Elementor dynamic tags for CF meta.
 - `assets/js/phone-mask.js`: phone masking + E.164 normalization for Elementor form.
@@ -23,7 +23,7 @@
 - `functions.php` loads:
   - `includes/crb_fields/init.php`
   - `includes/telegram_form.php`
-  - `includes/users_controls/users-controls.php`
+  - `includes/users_controls/users-controls.php` only when `MREPIT_SCHOOL_CORE_LOADED` is not defined
 - Hooks used:
   - `after_setup_theme` for `Carbon_Fields::boot()`
   - `wp_enqueue_scripts` for CSS/JS
@@ -60,7 +60,11 @@ All are public, `show_in_rest = true`, and hidden from default WP menu (`show_in
 - See `includes/crb_fields/teacher_fields.php`.
 
 ## 7. Users Controls Module
-Main loader: `includes/users_controls/users-controls.php`.
+Primary implementation: `wp-content/plugins/mrepit-school-core`.
+
+Theme fallback loader: `includes/users_controls/users-controls.php`.
+
+During Phase 1, the plugin defines `MREPIT_SCHOOL_CORE_LOADED`; the theme skips its fallback school module when this constant is present. On the current local site, `mrepit-school-core/mrepit-school-core.php` is active.
 
 ### Common layer (`includes/users_controls/common`)
 - `capabilities.php`: roles and custom caps.
@@ -115,8 +119,9 @@ File: `assets/js/phone-mask.js`.
 
 ## 12. Known Risks / Technical Debt
 - There are empty placeholder files (`form.php`, `menu.php`, `list-table-base.php`) in some modules.
-- School business logic still lives in the theme; the target architecture is to move it into a dedicated plugin.
+- School business logic is being migrated to the standalone `mrepit-school-core` plugin. The theme still contains a fallback copy until plugin activation is fully verified.
 - Current static checks cover critical invariants, but there is no full WordPress integration test suite yet.
+- The next cleanup step is removing the legacy fallback copy from the theme after accepting the active plugin as the single source of school logic.
 
 ## 13. Stabilization Checks
 Static checks are stored in `tests/static/`:
@@ -147,8 +152,8 @@ $files = rg --files -g "*.php" -g "!vendor/**"; foreach ($file in $files) { php 
 ## 15. Quick Change Map
 - Add/modify CPT: `includes/crb_fields/cpt.php`
 - Add/modify post meta fields: `includes/crb_fields/*_fields.php` + include in `includes/crb_fields/init.php`
-- User role logic: `includes/users_controls/common/capabilities.php`
-- School admin UI: `includes/users_controls/common/admin-menu.php`
-- User CRUD logic: `includes/users_controls/*_controls/handlers.php`
+- User role logic: `wp-content/plugins/mrepit-school-core/includes/common/capabilities.php`
+- School admin UI: `wp-content/plugins/mrepit-school-core/includes/common/admin-menu.php`
+- User CRUD logic: `wp-content/plugins/mrepit-school-core/includes/{parents,students,teachers}/handlers.php`
 - Telegram webhook: `includes/telegram_form.php`
-- Parent/student sync: `includes/users_controls/common/sync.php`
+- Parent/student sync: `wp-content/plugins/mrepit-school-core/includes/common/sync.php`

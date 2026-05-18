@@ -2,7 +2,9 @@
 require_once __DIR__ . '/includes/crb_fields/init.php';
 require_once __DIR__ . '/includes/telegram_form.php';
 
-require_once __DIR__ . '/includes/users_controls/users-controls.php';
+if (!defined('MREPIT_SCHOOL_CORE_LOADED')) {
+    require_once __DIR__ . '/includes/users_controls/users-controls.php';
+}
 
 add_action( 'wp_enqueue_scripts', 'my_child_theme_enqueue_styles', 20 );
 function my_child_theme_enqueue_styles() {    
