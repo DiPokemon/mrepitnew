@@ -7,67 +7,15 @@ function Read-ProjectFile($relativePath) {
     return Get-Content -Raw -Encoding UTF8 $path
 }
 
-$capabilities = Read-ProjectFile 'includes\users_controls\common\capabilities.php'
-$helpers = Read-ProjectFile 'includes\users_controls\common\helpers.php'
-$parentsHandler = Read-ProjectFile 'includes\users_controls\parents_controls\handlers.php'
-$studentsHandler = Read-ProjectFile 'includes\users_controls\students_controls\handlers.php'
-$teachersHandler = Read-ProjectFile 'includes\users_controls\teachers_controls\handlers.php'
 $themeFunctions = Read-ProjectFile 'functions.php'
+$legacyModulePath = Join-Path $root 'includes\users_controls'
 
-if ($capabilities -notmatch "add_filter\('editable_roles'") {
-    Write-Error 'Manager role restrictions must filter editable_roles.'
+if ($themeFunctions -match 'users_controls/users-controls\.php') {
+    Write-Error 'Theme functions.php must not load the legacy school users module; mrepit-school-core is the single source of school business logic.'
 }
 
-foreach ($role in @('teacher', 'student', 'parent')) {
-    if ($capabilities -notmatch "'$role'") {
-        Write-Error "Allowed school role '$role' is missing from capabilities.php."
-    }
+if ((Test-Path $legacyModulePath) -and (Get-ChildItem -Path $legacyModulePath -Recurse -File -Filter '*.php')) {
+    Write-Error 'Theme must not keep legacy includes/users_controls PHP files after Phase 1 cleanup.'
 }
 
-foreach ($blockedRole in @('administrator', 'manager')) {
-    if ($capabilities -notmatch "in_array\('$blockedRole'") {
-        Write-Error "Manager protection must explicitly block target role '$blockedRole'."
-    }
-}
-
-if ($capabilities -notmatch 'do_not_allow') {
-    Write-Error 'Manager protection must return do_not_allow for blocked user targets.'
-}
-
-if ($helpers -notmatch 'function\s+school_filter_user_ids_by_role') {
-    Write-Error 'Relationship handlers must use school_filter_user_ids_by_role() before saving linked user IDs.'
-}
-
-if ($themeFunctions -notmatch "MREPIT_SCHOOL_CORE_LOADED[\s\S]+includes/users_controls/users-controls\.php") {
-    Write-Error 'Theme functions.php must guard users-controls.php loading behind MREPIT_SCHOOL_CORE_LOADED.'
-}
-
-foreach ($entry in @(
-    @{ Name = 'parent create/update'; Source = $parentsHandler; Role = 'student'; Field = 'parent_children' },
-    @{ Name = 'student create/update'; Source = $studentsHandler; Role = 'parent'; Field = 'student_parents' }
-)) {
-    if ($entry.Source -notmatch "school_filter_user_ids_by_role\(\s*[^,]+,\s*'$($entry.Role)'\s*\)") {
-        Write-Error "$($entry.Name) must filter $($entry.Field) IDs to role '$($entry.Role)' before saving."
-    }
-}
-
-foreach ($entry in @(
-    @{ Name = 'parents'; Source = $parentsHandler; Create = 'school_parent_create'; Update = 'school_parent_update'; Role = 'parent' },
-    @{ Name = 'students'; Source = $studentsHandler; Create = 'school_student_create'; Update = 'school_student_update'; Role = 'student' },
-    @{ Name = 'teachers'; Source = $teachersHandler; Create = 'school_teacher_create'; Update = 'school_teacher_update'; Role = 'teacher' }
-)) {
-    if ($entry.Source -notmatch "check_admin_referer\('$($entry.Create)'\)") {
-        Write-Error "$($entry.Name) create handler must verify its nonce."
-    }
-    if ($entry.Source -notmatch "check_admin_referer\('$($entry.Update)'\)") {
-        Write-Error "$($entry.Name) update handler must verify its nonce."
-    }
-    if ($entry.Source -notmatch "school_assign_role_on_current_blog\([^,]+,\s*'$($entry.Role)'\)") {
-        Write-Error "$($entry.Name) handler must force the expected role '$($entry.Role)'."
-    }
-    if ($entry.Source -notmatch 'school_admin_can_manage_users') {
-        Write-Error "$($entry.Name) handlers must check school_admin_can_manage_users()."
-    }
-}
-
-Write-Output 'School users security static checks passed.'
+Write-Output 'Theme school users cleanup static checks passed.'

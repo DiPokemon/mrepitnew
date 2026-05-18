@@ -43,10 +43,10 @@
 - [x] Убрать логирование персональных данных из Telegram webhook.
 - [x] Усилить защиту Telegram webhook: обязательный secret и безопасный debug.
 - [x] Добавить rate limiting/anti-spam для Telegram webhook.
-- [ ] Перенести роли, capabilities и school business logic из темы в плагин.
+- [x] Перенести роли, capabilities и school business logic из темы в плагин.
 - [ ] Перестать использовать user meta/post meta для сложных сущностей: уроки, оплаты, транзакции, расписание.
 - [ ] Добавить нормальную миграционную систему для custom tables.
-- [ ] Настроить Git `safe.directory`, чтобы можно было читать статус, историю и делать коммиты.
+- [x] Настроить Git `safe.directory`, чтобы можно было читать статус, историю и делать коммиты.
 
 ---
 
@@ -126,8 +126,8 @@
 - [x] Перенести teacher user <-> teacher post link.
 - [x] Перенести parent/student sync.
 - [x] Добавить uninstall/deactivation policy без удаления данных по умолчанию.
-- [x] Оставить в теме temporary fallback guard для school module при выключенном плагине.
-- [ ] Оставить в теме только подключение визуальных Elementor-интеграций.
+- [x] Оставить в теме temporary fallback guard для school module при выключенном плагине на время проверки миграции.
+- [x] Оставить в теме только подключение визуальных Elementor-интеграций.
 
 ### Acceptance Criteria
 
@@ -332,3 +332,4 @@
 - 2026-05-18: Создан standalone plugin `wp-content/plugins/mrepit-school-core` с отдельным Git-репозиторием; перенесен текущий school user-control module; в теме добавлен guard `MREPIT_SCHOOL_CORE_LOADED`; добавлены Phase 1 design и implementation plan.
 - 2026-05-18: В `mrepit-school-core` добавлен `uninstall.php` с policy сохранения данных; plugin structure test проверяет, что uninstall не удаляет school data автоматически.
 - 2026-05-18: Плагин активирован в локальном WordPress; проверено, что `MREPIT_SCHOOL_CORE_LOADED` определен и `school_is_admin()` доступна при обычной загрузке `wp-load.php`. Plugin commits: `c3c6668`, `449d156`, `e9bfa77`.
+- 2026-05-18: Phase 1 cleanup завершен: тема больше не подключает и не хранит PHP-копию `includes/users_controls`; security checks school user-management и parent/student sync перенесены в `mrepit-school-core/tests/static/`; тема оставлена за Elementor, Carbon Fields, стили и Telegram form integration.

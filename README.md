@@ -2,13 +2,12 @@
 
 ## 1. Overview
 - Type: child theme for `hello-elementor`.
-- Goal: school website + custom admin module for managing users (`teacher`, `student`, `parent`) and related content.
-- Entry points: `functions.php`, `includes/crb_fields/init.php`, `includes/users_controls/users-controls.php`.
+- Goal: public school website presentation, Elementor integrations, Carbon Fields content settings, and Telegram form integration.
+- Entry points: `functions.php`, `includes/crb_fields/init.php`, `includes/telegram_form.php`.
 
 ## 2. Project Structure
 - `functions.php`: theme bootstrap, assets enqueue, SVG mime support, Elementor dynamic tags registration.
 - `includes/crb_fields/`: Carbon Fields boot + CPT and meta definitions.
-- `includes/users_controls/`: legacy fallback copy of the custom school admin module. The active target is the `mrepit-school-core` plugin.
 - `includes/telegram_form.php`: REST webhook endpoint for Elementor form -> Telegram.
 - `includes/elementor-carbon-tags.php`: custom Elementor dynamic tags for CF meta.
 - `assets/js/phone-mask.js`: phone masking + E.164 normalization for Elementor form.
@@ -23,7 +22,6 @@
 - `functions.php` loads:
   - `includes/crb_fields/init.php`
   - `includes/telegram_form.php`
-  - `includes/users_controls/users-controls.php` only when `MREPIT_SCHOOL_CORE_LOADED` is not defined
 - Hooks used:
   - `after_setup_theme` for `Carbon_Fields::boot()`
   - `wp_enqueue_scripts` for CSS/JS
@@ -62,11 +60,9 @@ All are public, `show_in_rest = true`, and hidden from default WP menu (`show_in
 ## 7. Users Controls Module
 Primary implementation: `wp-content/plugins/mrepit-school-core`.
 
-Theme fallback loader: `includes/users_controls/users-controls.php`.
+After Phase 1 cleanup, the theme does not load or keep a PHP fallback copy of the school user-management module. `mrepit-school-core/mrepit-school-core.php` must be active for the custom School admin, roles, capabilities, and user CRUD workflows.
 
-During Phase 1, the plugin defines `MREPIT_SCHOOL_CORE_LOADED`; the theme skips its fallback school module when this constant is present. On the current local site, `mrepit-school-core/mrepit-school-core.php` is active.
-
-### Common layer (`includes/users_controls/common`)
+### Common layer (`wp-content/plugins/mrepit-school-core/includes/common`)
 - `capabilities.php`: roles and custom caps.
 - `security.php`: protects relationship meta from unauthorized writes.
 - `helpers.php`: permission helpers and role labels.
@@ -98,7 +94,7 @@ Two-way binding between WP User (`teacher`) and CPT post (`teacher`):
 - user meta key: `school_teacher_post_id`
 - post meta key: `school_teacher_user_id`
 
-Implemented in `includes/users_controls/common/teacher-link.php` with safe relinking and unlinking on user/post deletion.
+Implemented in `wp-content/plugins/mrepit-school-core/includes/common/teacher-link.php` with safe relinking and unlinking on user/post deletion.
 
 ## 10. Telegram Integration
 File: `includes/telegram_form.php`.
@@ -118,17 +114,16 @@ File: `assets/js/phone-mask.js`.
 - Supports dynamic Elementor form rendering via frontend hook.
 
 ## 12. Known Risks / Technical Debt
-- There are empty placeholder files (`form.php`, `menu.php`, `list-table-base.php`) in some modules.
-- School business logic is being migrated to the standalone `mrepit-school-core` plugin. The theme still contains a fallback copy until plugin activation is fully verified.
+- School business logic now belongs to the standalone `mrepit-school-core` plugin.
 - Current static checks cover critical invariants, but there is no full WordPress integration test suite yet.
-- The next cleanup step is removing the legacy fallback copy from the theme after accepting the active plugin as the single source of school logic.
+- If the plugin is disabled, the theme will still render public pages, but the custom School admin module will not be available.
 
 ## 13. Stabilization Checks
 Static checks are stored in `tests/static/`:
 - `no-mojibake.test.ps1`: detects known mojibake markers outside `vendor` and font assets.
 - `telegram-webhook-security.test.ps1`: checks webhook logging, secret handling, debug output, and rate limiting.
-- `school-users-security.test.ps1`: checks manager capability restrictions and role CRUD handler safeguards.
-- `school-sync-security.test.ps1`: checks parent/student bidirectional sync cleanup invariants.
+- `school-users-security.test.ps1`: checks that the theme no longer loads or keeps legacy school user-management PHP files.
+- `school-sync-security.test.ps1`: checks that the theme no longer keeps legacy parent/student sync logic.
 
 Recommended local verification:
 ```powershell

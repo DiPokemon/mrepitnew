@@ -4,7 +4,7 @@
 
 **Goal:** Extract school user-management business logic from the Elementor theme into a standalone WordPress plugin with its own Git repository.
 
-**Architecture:** The plugin loads the existing school module independently of the theme and defines `MREPIT_SCHOOL_CORE_LOADED`. The theme keeps a temporary fallback guard so the old module loads only when the plugin is inactive. Existing hooks, admin pages, and function names stay stable during Phase 1.
+**Architecture:** The plugin loads the school module independently of the theme and defines `MREPIT_SCHOOL_CORE_LOADED`. During migration the theme kept a temporary fallback guard; after Phase 1 cleanup the theme no longer loads or stores the legacy school module. Existing hooks, admin pages, and function names stay stable through the plugin.
 
 **Tech Stack:** WordPress 6.9.4, PHP 8.1/8.3 syntax checks, PowerShell static tests, Git, Carbon Fields via the active theme for this phase.
 
@@ -14,24 +14,25 @@
 
 Create in plugin:
 
-- `D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\mrepit-school-core.php`
-- `D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\README.md`
-- `D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\includes\bootstrap.php`
-- `D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\includes\common\*.php`
-- `D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\includes\parents\*.php`
-- `D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\includes\students\*.php`
-- `D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\includes\teachers\*.php`
-- `D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\tests\static\plugin-structure.test.ps1`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\mrepit-school-core.php`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\README.md`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\includes\bootstrap.php`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\includes\common\*.php`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\includes\parents\*.php`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\includes\students\*.php`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\includes\teachers\*.php`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\tests\static\plugin-structure.test.ps1`
+- `D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\tests\static\school-users-security.test.ps1`
 
 Modify in theme:
 
-- `D:\OSPanel\domains\mrepitnew\wp-content\themes\mrepitnew\functions.php`
-- `D:\OSPanel\domains\mrepitnew\wp-content\themes\mrepitnew\docs\online-school-work-plan.md`
-- `D:\OSPanel\domains\mrepitnew\wp-content\themes\mrepitnew\README.md`
+- `D:\OSPanel\domains\mrepit\wp-content\themes\mrepitnew\functions.php`
+- `D:\OSPanel\domains\mrepit\wp-content\themes\mrepitnew\docs\online-school-work-plan.md`
+- `D:\OSPanel\domains\mrepit\wp-content\themes\mrepitnew\README.md`
 
 ## Task 1: Plugin Scaffold and Static Test
 
-- [ ] **Step 1: Create failing plugin-structure test**
+- [x] **Step 1: Create failing plugin-structure test**
 
 Create `wp-content/plugins/mrepit-school-core/tests/static/plugin-structure.test.ps1`:
 
@@ -90,17 +91,17 @@ foreach ($needle in @(
 Write-Output 'MRepit School Core plugin structure checks passed.'
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\tests\static\plugin-structure.test.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\tests\static\plugin-structure.test.ps1
 ```
 
 Expected: FAIL because plugin files do not exist yet.
 
-- [ ] **Step 3: Create minimal plugin files**
+- [x] **Step 3: Create minimal plugin files**
 
 Create `mrepit-school-core.php`:
 
@@ -127,19 +128,19 @@ require_once MREPIT_SCHOOL_CORE_PATH . 'includes/bootstrap.php';
 
 Create `includes/bootstrap.php` with required file loading.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\tests\static\plugin-structure.test.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\tests\static\plugin-structure.test.ps1
 ```
 
 Expected: PASS.
 
 ## Task 2: Move School Module Files
 
-- [ ] **Step 1: Copy school module files into plugin**
+- [x] **Step 1: Copy school module files into plugin**
 
 Copy:
 
@@ -148,7 +149,7 @@ Copy:
 - `students_controls\list-table.php`, `pages.php`, `handlers.php` to `includes\students\`
 - `teachers_controls\list-table.php`, `pages.php`, `handlers.php` to `includes\teachers\`
 
-- [ ] **Step 2: Update bootstrap paths**
+- [x] **Step 2: Update bootstrap paths**
 
 Use plugin paths:
 
@@ -157,29 +158,29 @@ $base = MREPIT_SCHOOL_CORE_PATH . 'includes/';
 require_once $base . 'common/capabilities.php';
 ```
 
-- [ ] **Step 3: Run plugin syntax check**
+- [x] **Step 3: Run plugin syntax check**
 
 Run:
 
 ```powershell
-$files = rg --files D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core -g "*.php"; foreach ($file in $files) { D:\OSPanel\modules\php\PHP_8.1\php.exe -l $file }
+$files = rg --files D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core -g "*.php"; foreach ($file in $files) { D:\OSPanel\modules\php\PHP_8.1\php.exe -l $file }
 ```
 
 Expected: no syntax errors.
 
 ## Task 3: Theme Fallback Guard
 
-- [ ] **Step 1: Add failing static test to theme**
+- [x] **Step 1: Add failing static test to theme**
 
-Extend `tests/static/school-users-security.test.ps1` or create a new test that requires `functions.php` to check `MREPIT_SCHOOL_CORE_LOADED` before loading `includes/users_controls/users-controls.php`.
+Extend `tests/static/school-users-security.test.ps1` so the theme no longer loads `includes/users_controls/users-controls.php` and no longer keeps legacy school PHP files.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Expected: FAIL because theme currently loads users controls unconditionally.
 
-- [ ] **Step 3: Update `functions.php`**
+- [x] **Step 3: Update `functions.php`**
 
-Replace:
+During the first migration step, replace:
 
 ```php
 require_once __DIR__ . '/includes/users_controls/users-controls.php';
@@ -193,13 +194,15 @@ if (!defined('MREPIT_SCHOOL_CORE_LOADED')) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+During Phase 1 cleanup, remove this block entirely and delete the legacy school PHP files from the theme.
+
+- [x] **Step 4: Run test to verify it passes**
 
 Expected: PASS.
 
 ## Task 4: Plugin Git Repository
 
-- [ ] **Step 1: Initialize plugin Git repository**
+- [x] **Step 1: Initialize plugin Git repository**
 
 Run in `wp-content/plugins/mrepit-school-core`:
 
@@ -207,7 +210,7 @@ Run in `wp-content/plugins/mrepit-school-core`:
 git init
 ```
 
-- [ ] **Step 2: Add plugin files**
+- [x] **Step 2: Add plugin files**
 
 Run:
 
@@ -220,15 +223,15 @@ Expected: plugin has its own initial commit.
 
 ## Task 5: Documentation and Verification
 
-- [ ] **Step 1: Update theme README**
+- [x] **Step 1: Update theme README**
 
-Document that school business logic is migrating to `mrepit-school-core` and that the theme has a temporary fallback guard.
+Document that school business logic belongs to `mrepit-school-core` and that the theme no longer keeps the fallback school module.
 
-- [ ] **Step 2: Update work plan**
+- [x] **Step 2: Update work plan**
 
 Mark completed Phase 1 tasks in `docs/online-school-work-plan.md`.
 
-- [ ] **Step 3: Run all checks**
+- [x] **Step 3: Run all checks**
 
 Run theme static tests:
 
@@ -242,12 +245,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests\static\school-sync-sec
 Run plugin static test:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File D:\OSPanel\domains\mrepitnew\wp-content\plugins\mrepit-school-core\tests\static\plugin-structure.test.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\OSPanel\domains\mrepit\wp-content\plugins\mrepit-school-core\tests\static\plugin-structure.test.ps1
 ```
 
 Run syntax checks for theme and plugin.
 
-- [ ] **Step 4: Commit theme documentation/fallback changes**
+- [x] **Step 4: Commit theme documentation/fallback changes**
 
 Run in theme repository:
 

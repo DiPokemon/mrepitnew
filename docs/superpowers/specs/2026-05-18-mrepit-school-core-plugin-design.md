@@ -6,7 +6,7 @@ Move school business logic out of the `mrepitnew` Elementor theme into a standal
 
 ## Current Context
 
-- WordPress root: `D:\OSPanel\domains\mrepitnew`
+- WordPress root: `D:\OSPanel\domains\mrepit`
 - Active theme: `mrepitnew`
 - Parent theme: `hello-elementor`
 - Active plugins: `elementor`, `elementor-pro`
@@ -37,16 +37,16 @@ The theme keeps visual and marketing behavior:
 
 ## Migration Strategy
 
-Use staged extraction with a temporary theme fallback.
+Use staged extraction. The first migration step used a temporary theme fallback; after plugin activation was verified, Phase 1 cleanup removed the fallback from the theme.
 
 1. Create `mrepit-school-core` as a standalone plugin with its own Git repository.
 2. Move the school user-control module from the theme to the plugin with the same function names and hooks.
 3. Define `MREPIT_SCHOOL_CORE_LOADED` in the plugin.
-4. Update theme bootstrap so `includes/users_controls/users-controls.php` loads only when the plugin is not active.
+4. Remove the theme bootstrap dependency on `includes/users_controls/users-controls.php` after plugin activation is verified.
 5. Add static checks that prevent duplicate loading and verify plugin structure.
 6. Verify syntax for both theme and plugin.
 
-This keeps rollback simple: disabling the plugin lets the theme fallback load the old module while the transition is being verified. Once the plugin is stable, a later cleanup phase can remove the fallback and delete the copied school module from the theme.
+This kept rollback simple during the transition. Current Phase 1 status: the plugin is active and the theme no longer keeps a PHP fallback copy of the school module.
 
 ## Plugin File Structure
 
@@ -88,7 +88,7 @@ WordPress loads active plugins before the active theme:
 
 1. `mrepit-school-core.php` defines plugin constants and loads `includes/bootstrap.php`.
 2. `bootstrap.php` loads common helpers, roles/caps, security, sync, teacher-link, admin menu, Carbon Fields user meta, and role CRUD modules.
-3. Theme `functions.php` checks `MREPIT_SCHOOL_CORE_LOADED`; if present, it skips the theme copy of `includes/users_controls/users-controls.php`.
+3. Theme `functions.php` loads only theme-owned presentation integrations; school user-management code is loaded by the plugin.
 4. Existing admin URLs and handler actions stay unchanged, so managers keep using the same School UI.
 
 ## Error Handling
@@ -97,7 +97,7 @@ WordPress loads active plugins before the active theme:
 - Plugin bootstrap loads files only once.
 - The plugin does not delete data on deactivation.
 - Existing hooks and function names remain stable to reduce migration risk.
-- Theme fallback prevents a hard failure if the plugin is disabled during local development.
+- If the plugin is disabled, public theme rendering remains available, but the custom School admin module is unavailable.
 
 ## Testing
 
