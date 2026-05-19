@@ -160,10 +160,13 @@
 - [x] Добавить таблицу версии схемы.
 - [ ] Добавить репозитории доступа к данным.
   - [x] Первый вертикальный срез: lesson repository.
+  - [x] Второй вертикальный срез: lesson participants repository.
 - [ ] Добавить валидацию входных данных.
   - [x] Первый вертикальный срез: lesson status/date/user ID validation.
+  - [x] Второй вертикальный срез: participant role и attendance status validation.
 - [ ] Добавить базовые unit/integration проверки, если окружение позволит.
   - [x] Runtime check для lesson repository на локальной БД.
+  - [x] Runtime check для lesson participants repository на локальной БД.
 
 ### Acceptance Criteria
 
@@ -338,3 +341,4 @@
 - 2026-05-18: Phase 1 cleanup завершен: тема больше не подключает и не хранит PHP-копию `includes/users_controls`; security checks school user-management и parent/student sync перенесены в `mrepit-school-core/tests/static/`; тема оставлена за Elementor, Carbon Fields, стили и Telegram form integration.
 - 2026-05-19: Начата Phase 2 в ветке плагина `phase-2-core-data-model`; добавлены `includes/database/schema.php`, `includes/database/migrations.php`, schema option `mrepit_school_core_schema_version`, activation/admin schema upgrade hook и static test `tests/static/database-migrations.test.ps1` для 10 core tables.
 - 2026-05-19: Добавлен первый repository layer для `school_lessons`: `includes/repositories/lessons.php` с create/get/update/find/delete API, whitelist статусов уроков, нормализацией дат и runtime test `tests/runtime/lessons-repository.runtime.php`.
+- 2026-05-19: Добавлен repository layer для `school_lesson_participants`: add/list/update attendance/delete API, whitelist participant roles и attendance statuses, duplicate guard по `lesson_id + user_id + role`, static/runtime tests.
