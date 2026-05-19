@@ -143,21 +143,21 @@
 
 ### Planned Custom Tables
 
-- [ ] `wp_school_lessons` - уроки и их статус.
-- [ ] `wp_school_lesson_participants` - участники урока.
-- [ ] `wp_school_schedule_rules` - регулярное расписание.
-- [ ] `wp_school_schedule_requests` - переносы/отмены.
-- [ ] `wp_school_homework` - домашние задания.
-- [ ] `wp_school_homework_submissions` - ответы учеников.
-- [ ] `wp_school_accounts` - внутренние балансы.
-- [ ] `wp_school_transactions` - финансовые операции.
-- [ ] `wp_school_notifications` - очередь уведомлений.
-- [ ] `wp_school_audit_log` - журнал действий.
+- [x] `wp_school_lessons` - уроки и их статус.
+- [x] `wp_school_lesson_participants` - участники урока.
+- [x] `wp_school_schedule_rules` - регулярное расписание.
+- [x] `wp_school_schedule_requests` - переносы/отмены.
+- [x] `wp_school_homework` - домашние задания.
+- [x] `wp_school_homework_submissions` - ответы учеников.
+- [x] `wp_school_accounts` - внутренние балансы.
+- [x] `wp_school_transactions` - финансовые операции.
+- [x] `wp_school_notifications` - очередь уведомлений.
+- [x] `wp_school_audit_log` - журнал действий.
 
 ### Planned
 
-- [ ] Создать миграционную систему плагина.
-- [ ] Добавить таблицу версии схемы.
+- [x] Создать миграционную систему плагина.
+- [x] Добавить таблицу версии схемы.
 - [ ] Добавить репозитории доступа к данным.
 - [ ] Добавить валидацию входных данных.
 - [ ] Добавить базовые unit/integration проверки, если окружение позволит.
@@ -333,3 +333,4 @@
 - 2026-05-18: В `mrepit-school-core` добавлен `uninstall.php` с policy сохранения данных; plugin structure test проверяет, что uninstall не удаляет school data автоматически.
 - 2026-05-18: Плагин активирован в локальном WordPress; проверено, что `MREPIT_SCHOOL_CORE_LOADED` определен и `school_is_admin()` доступна при обычной загрузке `wp-load.php`. Plugin commits: `c3c6668`, `449d156`, `e9bfa77`.
 - 2026-05-18: Phase 1 cleanup завершен: тема больше не подключает и не хранит PHP-копию `includes/users_controls`; security checks school user-management и parent/student sync перенесены в `mrepit-school-core/tests/static/`; тема оставлена за Elementor, Carbon Fields, стили и Telegram form integration.
+- 2026-05-19: Начата Phase 2 в ветке плагина `phase-2-core-data-model`; добавлены `includes/database/schema.php`, `includes/database/migrations.php`, schema option `mrepit_school_core_schema_version`, activation/admin schema upgrade hook и static test `tests/static/database-migrations.test.ps1` для 10 core tables.
