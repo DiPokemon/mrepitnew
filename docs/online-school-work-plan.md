@@ -161,12 +161,15 @@
 - [ ] Добавить репозитории доступа к данным.
   - [x] Первый вертикальный срез: lesson repository.
   - [x] Второй вертикальный срез: lesson participants repository.
+  - [x] Третий вертикальный срез: schedule rules repository.
 - [ ] Добавить валидацию входных данных.
   - [x] Первый вертикальный срез: lesson status/date/user ID validation.
   - [x] Второй вертикальный срез: participant role и attendance status validation.
+  - [x] Третий вертикальный срез: schedule weekday/time/duration/timezone/status validation.
 - [ ] Добавить базовые unit/integration проверки, если окружение позволит.
   - [x] Runtime check для lesson repository на локальной БД.
   - [x] Runtime check для lesson participants repository на локальной БД.
+  - [x] Runtime check для schedule rules repository на локальной БД.
 
 ### Acceptance Criteria
 
@@ -342,3 +345,4 @@
 - 2026-05-19: Начата Phase 2 в ветке плагина `phase-2-core-data-model`; добавлены `includes/database/schema.php`, `includes/database/migrations.php`, schema option `mrepit_school_core_schema_version`, activation/admin schema upgrade hook и static test `tests/static/database-migrations.test.ps1` для 10 core tables.
 - 2026-05-19: Добавлен первый repository layer для `school_lessons`: `includes/repositories/lessons.php` с create/get/update/find/delete API, whitelist статусов уроков, нормализацией дат и runtime test `tests/runtime/lessons-repository.runtime.php`.
 - 2026-05-19: Добавлен repository layer для `school_lesson_participants`: add/list/update attendance/delete API, whitelist participant roles и attendance statuses, duplicate guard по `lesson_id + user_id + role`, static/runtime tests.
+- 2026-05-19: Добавлен repository layer для `school_schedule_rules`: create/get/update/find/delete API, whitelist статусов `active/paused/archived`, валидация weekday/time/duration/timezone/date range, static/runtime tests.
