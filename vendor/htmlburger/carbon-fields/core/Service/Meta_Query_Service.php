@@ -100,14 +100,11 @@ class Meta_Query_Service extends Service {
 	}
 
 	public function filter_get_meta_sql( $sql ) {
-        if ( strpos( $sql['where'], static::META_KEY_PREFIX ) !== false ) {
-            $sql['where'] = preg_replace( $this->get_meta_key_replace_regex(), '$1 LIKE $2', $sql['where'] );
-        }
-        if ( strpos( $sql['join'], static::META_KEY_PREFIX ) !== false ) {
-            $sql['join'] = str_replace( static::META_KEY_PREFIX, '', $sql['join'] );
-        }
-        return $sql;
-    }
+		if ( strpos( $sql['where'], static::META_KEY_PREFIX ) !== false ) {
+			$sql['where'] = preg_replace( $this->get_meta_key_replace_regex(), '$1 LIKE $2', $sql['where'] );
+		}
+		return $sql;
+	}
 
 	/**************************************************
 	 * WP_QUERY                                       *
