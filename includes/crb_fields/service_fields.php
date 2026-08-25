@@ -19,8 +19,9 @@ add_action('carbon_fields_register_fields', function () {
     Container::make('post_meta', 'Настройки для анонса')
         ->where('post_type', '=', 'service')
         ->add_fields([
-            Field::make( 'rich_text', 'service_anounce', 'Текст анонса' )
+            Field::make( 'textarea', 'service_anounce', 'Текст анонса' )
                 ->set_help_text('Будет отображаться на главной странице в блоке услуг')
+                ->set_rows(8)
                 ->set_width(50),
             Field::make( 'checkbox', 'crown_display', 'Показать корону' )
                 ->set_width(25),
